@@ -65,7 +65,7 @@ void room() {
   // background wall
   pushMatrix();
   translate(0,0,-height);
-  fill(#1d69e2);
+  fill(240);
   rect(0,0,width,height);
   popMatrix();
 }
@@ -81,7 +81,7 @@ void setup() {
   texture(img);
   // create shapes
   drawer = createShape(BOX, 50, 70, 10);
-  drawer.setFill(color(127,28,28));
+  drawer.setFill(color(97,28,28));
   selected[0] = drawer;
 }
 
@@ -89,6 +89,10 @@ void draw() {
   //String[inputLenght] input = getSerial(myPort, inputLenght);
   //vectorS = {input[0], input[1], input[2]};
   //grab = boolean(input[3]);
+  directionalLight(80, 90, 80, 0, height, -50);
+  ambientLight(90,110,90);
+ // pointLight(50, 50, 50, width/2, height, 0);
+  
   room();
   pushMatrix();
   translate(-24, height/1.7, -height/5);
