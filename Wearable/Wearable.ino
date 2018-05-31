@@ -1,20 +1,3 @@
-/* Copyright (C) 2012 Kristian Lauszus, TKJ Electronics. All rights reserved.
-
- This software may be distributed and modified under the terms of the GNU
- General Public License version 2 (GPL2) as published by the Free Software
- Foundation and appearing in the file GPL2.TXT included in the packaging of
- this file. Please note that GPL2 Section 2[b] requires that all works based
- on this software must also be made publicly available under the terms of
- the GPL2 ("Copyleft").
-
- Contact information
- -------------------
-
- Kristian Lauszus, TKJ Electronics
- Web      :  http://www.tkjelectronics.com
- e-mail   :  kristianl@tkjelectronics.com
- */
-
 #include <Wire.h>
 #include "Kalman.h" // Source: https://github.com/TKJElectronics/KalmanFilter
 
@@ -26,6 +9,8 @@
 
 // For mag
 #include "HMC5883L.h"
+
+#define MIN_TIME          2000  // MuscleHand minium time
 
 #define RESTRICT_PITCH // Comment out to restrict roll to ±90deg instead - please read: http://www.freescale.com/files/sensors/doc/app_note/AN3461.pdf
 
@@ -45,6 +30,20 @@ Kalman kalmanY;
 Kalman kalmanZ;
 
 /* IMU Data */
+const int analogInPin = A0;  // Analog input pin that the potentiometer is attached to
+const int analogOutPin = 9; // Analog output pin that the LED is attached to
+
+unsigned long int muscleThreshold = 0;
+float sensorValue = 0;        // value read from the pot
+int outputValue = 0;        // value output to the PWM (analog out)
+float alpha = 0.8;
+float lastSensorValue;
+bool hold = false;
+unsigned long time_t;        
+
+                              //fim das variaveis globais muscle hand
+
+                              
 double accX, accY, accZ;
 double gyroX, gyroY, gyroZ;
 double magX, magY, magZ; 
@@ -89,19 +88,19 @@ double magZmin = 0;
 void initializeGyro() {
   gyro.initialize();
   gyro.setFullScale(250);
-  Serial.println(gyro.testConnection() ? "L3G4200D connection successful" : "L3G4200D connection failed");
+  //Serial.println(gyro.testConnection() ? "L3G4200D connection successful" : "L3G4200D connection failed");
 }
 
 void initializeAccel() {
   accel.initialize();
   accel.setRange(0);
   accel.setFullResolution(1); // Full resolution mode -> 4mg/LSB
-  Serial.println(accel.testConnection() ? "ADXL345 connection successful" : "ADXL345 connection failed");
+  //Serial.println(accel.testConnection() ? "ADXL345 connection successful" : "ADXL345 connection failed");
 }
 
 void initializeMag() {
   mag.initialize();
-  Serial.println(mag.testConnection() ? "HMC5883L connection successful" : "HMC5883L connection failed");
+  //Serial.println(mag.testConnection() ? "HMC5883L connection successful" : "HMC5883L connection failed");
 
   mag.setMode(0b00);    // Continuous mode
   delay(100);
@@ -126,7 +125,7 @@ void initializeMag() {
   magGain[1] = -2500 / float(magNegOff[1] - magPosOff[1]);
   magGain[2] = -2500 / float(magNegOff[2] - magPosOff[2]);
 
-  #if 1
+  #if 0
     Serial.print("Mag cal: ");
     Serial.print(magNegOff[0] - magPosOff[0]);
     Serial.print(",");
@@ -163,23 +162,24 @@ void readMag() {
   magY = (double) magY_u;
   magZ = (double) magZ_u;
 
-  /*if (magX > magXmax)
-    magXmax = magX;
-  if (magX < magXmin)
-    magXmin = magX;  
-  if (magY > magYmax)
-    magYmax = magY;    
-  if (magY < magYmin)
-    magYmin = magY;
-  if (magZ > magZmax)
-    magZmax = magZ;    
-  if (magZ < magZmin)
-    magZmin = magZ;    */
+  
 }
 
+void calibrate_muscle(){
+  for (int amostra = 0; amostra < 40; amostra++){
+    muscleThreshold += analogRead(analogInPin);
+    delay(38);
+  }
+
+  muscleThreshold /= 40;
+}
+
+  
 void setup() {
   Serial.begin(115200);
   
+  // calibrate musclehand function
+  calibrate_muscle();   
   // Set Gyro Full Scale Range to ±250deg/s
   initializeGyro();
   // Set Accelerometer Full Scale Range to ±2g 
@@ -215,6 +215,16 @@ void setup() {
 }
 
 void loop() {
+
+  // read the analog in value:
+  lastSensorValue = sensorValue;
+  
+  sensorValue = analogRead(analogInPin);
+  sensorValue = alpha * sensorValue + (1-alpha) * lastSensorValue;  
+  if ( (sensorValue > 1.5 * muscleThreshold) && (millis() - time_t  > MIN_TIME) ){
+    hold = !hold; 
+    time_t = millis();
+  }
   // Update all the values
   readGyro();
   readAccel();
@@ -291,30 +301,26 @@ void loop() {
   
   /* Print Data */
 #if 0 // Set to 1 to activate
-  /*Serial.print("AccX: "); Serial.print(accX); Serial.print("\t");
+  Serial.print("AccX: "); Serial.print(accX); Serial.print("\t");
   Serial.print("AccY: "); Serial.print(accY); Serial.print("\t");
   Serial.print("AccZ: "); Serial.print(accZ); Serial.print("\t");
 
   Serial.print("GyroX: "); Serial.print(gyroX); Serial.print("\t");a
   Serial.print("GyroY: "); Serial.print(gyroY); Serial.print("\t");
-  Serial.print("GyroZ: "); Serial.print(gyroZ); Serial.print("\t"); */
+  Serial.print("GyroZ: "); Serial.print(gyroZ); Serial.print("\t"); 
 
   Serial.print("MagX: "); Serial.print(magX); Serial.print("\t");
   Serial.print("MagY: "); Serial.print(magY); Serial.print("\t");
   Serial.print("MagZ: "); Serial.print(magZ); Serial.print("\t");
-
-  /*Serial.print("MagXmax: "); Serial.print(magXmax); Serial.print("\t");
-  Serial.print("MagXmin: "); Serial.print(magXmin); Serial.print("\t");
-  Serial.print("MagYmax: "); Serial.print(magYmax); Serial.print("\t");
-  Serial.print("MagYmin: "); Serial.print(magYmin); Serial.print("\t");
-  Serial.print("MagZmax: "); Serial.print(magZmax); Serial.print("\t");
-  Serial.print("MagZmin: "); Serial.print(magZmin); Serial.print("\t");*/
 #endif
 
 #if 1
   Serial.print(roll); Serial.print(";");
   Serial.print(pitch); Serial.print(";");
   Serial.print(yawNorm); Serial.print(";");
+  Serial.print(hold); Serial.print(";");
+  Serial.print(sensorValue); Serial.print(";");
+  Serial.print(muscleThreshold);
   //Serial.print("FirstYaw: "); Serial.print(firstYaw); Serial.print("\t");
 #endif
 
