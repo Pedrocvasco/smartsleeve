@@ -29,7 +29,7 @@ void setup() {
   smooth(4);
 
   // create shapes
-  drawer = createShape(BOX, 50, 70, 10);
+  drawer = createShape(BOX, 50, 70, 50);
   drawer.setFill(color(97, 28, 28));
   muscleArrow = createShape(BOX, 3, 3, -1000);
   muscleArrow.setFill(color(255, 3, 3));
@@ -44,11 +44,12 @@ void draw() {
   //String[inputLenght] input = getSerial(myPort, inputLenght);
   //vectorS = {input[0], input[1], input[2]};
   //grab = boolean(input[3]);
-
+  lights();
   setLights();
   room();
   updateAngle();
   updateM();
+  updateObjects();
   mouseTarget();
   muscleTarget();
   if (isDragging == true ) {
@@ -58,10 +59,10 @@ void draw() {
 
 void updateObjects() {
   pushMatrix();
-  translate(width/2, 0, 0);
-  rotateY(mouseX*(-0.02) - 20);
-  translate(-width/2, 0, 0);
-  translate(mouseX, height/1.3, -height/5);
+  translate(anglesF[1]*10.2*PI + width/2,8.4*(anglesF[0]*PI) + height/2, -100);
+  rotateY(-PI/4);
+  //translate(-width/2, 0, 0);
+  //translate(mouseX, height/1.3, -height/5);
   shape(drawer); // Draw the shape
   popMatrix();
   if (selected[0] != null) {
@@ -129,7 +130,7 @@ void room() {
   // background wall
   pushMatrix();
   translate(0, 0, -height);
-  fill(240);
+  fill(195);
   rect(0, 0, width, height);
   popMatrix();
 }
@@ -198,7 +199,7 @@ void updateM() {
 }
 
 void setLights() {
-  directionalLight(80, 90, 80, 0, height, -50);
-  ambientLight(90, 110, 90);
-  pointLight(50, 50, 50, width/2, height, 0);
+  //directionalLight(20, 30, 20, 0, height, -50);
+  //ambientLight(25, 25, 20);
+ // pointLight(50, 50, 50, width/2, height, 0);
 }
