@@ -2,14 +2,16 @@ import processing.serial.* ;
 import java.math.*;
 import java.util.*;
 
-float[][] positions = {{width/2 + 400,height + 400,0},{width/2,height/4,height+10}} ;
-int[][] colors = {{97,28,28},{140,28,128},{0,0,50},{255,0,0},{0,255,0}};
+float[][] positions = {{780,height + 700,0},{width/2 + 230, height + 400,-100},{width/2 + 1950, height + 950 ,-200},{width/2 + 1650, 500, - height }} ;
+int[][] colors = {{47,14,14},{70,14,63},{120,76,34},{0,0,25},{125,0,0},{0,125,0},{100,100,13}};
 PShape drawer; // declare objects
 PShape window;
+PShape bed;
+PShape door;
 PShape icon;
 PShape mouseArrow;
 PShape muscleArrow;
-String[] shapes = {"drawer", "window"}; // array with all objects of the scene
+String[] shapes = {"drawer", "window", "bed", "door"}; // array with all objects of the scene
 String[] selected = new String[1]; // array with selected object to drag
 boolean isDragging = true; // if is dragging, releaseObject. if is not dragging, grabObject.
 boolean grab;
@@ -19,76 +21,119 @@ float[] input = new float[6];
 float[] angles = {45, 45};
 float[] anglesF = {45, 45};
 float[] point = {600,600} ; 
-float threshold = 200;
+float threshold = 100;
 int inputLenght = 6; // number of elements at the string array in the serial communication
 String portName = Serial.list()[0];
 String inputValue;// change the 0 to a 1 or 2 etc. to match your port
 Serial myPort = new Serial(this, portName, 74880);
+boolean thresh1;
+boolean thresh2;
+boolean thresh3;
+boolean thresh4;
 
 
 
 
 void setup() {
-  size(1920, 1080, P3D); // set size of window
+  size(2400, 1000, P3D); // set size of window
 
   smooth(4);
 
   // create shapes
+  //noCursor();
   icon = createShape(RECT,0,0,10,10);
   icon.setFill(color(colors[4][0], colors[4][1],colors[4][2]));
-  drawer = createShape(BOX, 50, 70, 70);
+  bed = createShape(SPHERE,210);
+  bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+  drawer = createShape(BOX, 340, 70, 70);
   drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
-  window = createShape(BOX, 50, 70, 70);
+  window = createShape(BOX, 20, 270, 470);
   window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+  door = createShape(BOX ,50 ,400 , 10);
+  door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
   muscleArrow = createShape(BOX, 3, 3, -1000);
   muscleArrow.setFill(color(colors[2][0], colors[2][1],colors[2][2]));
   mouseArrow = createShape(BOX, 3, 3, -1000);
   mouseArrow.setFill(color(colors[3][0], colors[3][1],colors[3][2]));
+  
 
   // set First Selected
   selected[0] = "drawer";
 }
 
 void draw() {
-  textSize(30);
-  fill(10, 10, 70, 80);
-  text(String.valueOf(isDragging),800,800,-400);
-  /*text(String.valueOf(selected[0]),800,880,-400);
-  textSize(120);
-  text(String.valueOf(point[0]),800,960,-400);
-  text(String.valueOf(point[1]),900,1020,-400);
-  */
-  //String[inputLenght] input = getSerial(myPort, inputLenght);
-  //vectorS = {input[0], input[1], input[2]};
-  //grab = boolean(input[3]);
+  
   lights();
   setLights();
   room();
   updateAngle();
-  updatePoint();
+  updatePointo();
   updateMo();
   updateSelection();
   updateObjects();
   mouseTarget();
-  muscleTarget();
-  print(" PONTEIRO = ");
+  //muscleTarget();
+  printinfo();    
+  updateSelection();
+  colorUpdate();
+}  
+
+void printinfo(){
+  
+     textSize(60);
+     fill(10, 10, 10, 180);
+     text(String.valueOf(isDragging),800,100,-200);
+     text(selected[0],1000,100,-200);
+      print(" PONTEIRO = ");
       print(point[0]);
       print("  ");
       println(point[1]);
+      print("Positions = ");
+      print(positions[0][0]+"  ");
+      print(positions[0][1]+"  ");
+      print(positions[0][2]+"  ");
+      print(positions[1][0]+"  ");
+      print(positions[1][1]+"  ");
+      print(positions[1][2]+"  ");
+      print(positions[2][0]+"  ");
+      print(positions[2][1]+"  ");
+      print(positions[2][2]+"  ");
+      print(positions[3][0]+"  ");
+      print(positions[3][1]+"  ");
+      println(positions[3][2]+"  ");
       print("Threshold = ");
       print(abs(point[0] - positions[0][0]));
       print("   ");
-      println(abs(point[1] - positions[0][1]));
-      print(shapes[0]);
+      print(abs(point[1] - positions[0][1]));
       print("   ");
-      println(shapes[1]);
-}  
+      print(abs(point[0] - positions[1][0]));
+      print("   ");
+      print(abs(point[1] - positions[1][1]));
+      print("   ");
+      print(abs(point[0] - positions[2][0])-20);
+      print("   ");
+      print(abs(point[1] - positions[2][2] - 1050));
+      print("   ");
+      print(abs(point[0] - positions[3][0]));
+      print("   ");
+      println(abs(point[1] - positions[3][1]));
+      print("   ");
+      println(selected[0]);
+}
 
 void updatePoint() {
   if(anglesF.length>1){
   point[1] = 535 - min(max(-1*(anglesF[0]*13*PI),-900), 900) ;
   point[0] = min(max(anglesF[1]*11*PI,-920), 1020) + 950;
 }
+}
+void updatePointo() {
+  if(anglesF.length>1){
+  point[1] = mouseY + 70 ;
+  point[0] = mouseX ;
+}
+
+
 }
 void updateObjects() {
 
@@ -99,6 +144,22 @@ void updateObjects() {
     positions[0][1] = 8.4*(anglesF[0]*PI) + height/2;*/
     positions[0][0] = point[0] ;
     positions[0][1] = point[1];
+    colors[0][0] = 255;
+    colors[0][1] = 0;
+    colors[0][2] = 0;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
   }
   
     if (selected[0] == "window" && isDragging) {
@@ -106,8 +167,71 @@ void updateObjects() {
     positions[0][1] = 8.4*(anglesF[0]*PI) + height/2;*/
     positions[1][0] = point[0] ;
     positions[1][1] = point[1];
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[1][0] = 255;
+    colors[1][1] = 0;
+    colors[1][2] = 0;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
   }
   
+      if (selected[0] == "bed" && isDragging) {
+    /*positions[0][0] = anglesF[1]*10.2*PI + width/2 ;
+    positions[0][1] = 8.4*(anglesF[0]*PI) + height/2;*/
+    positions[2][0] = point[0] ;
+    positions[2][2] = point[1]- 1133 ;
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 255;
+    colors[5][1] = 0;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+    
+
+  }
+  
+        if (selected[0] == "door" && isDragging) {
+    positions[3][0] = point[0] ;
+    positions[3][1] = point[1];          // angles
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 255;
+    colors[6][1] = 0;
+    colors[6][2] = 0;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+    
+
+  }
 
   //Drawing objects
   pushMatrix();
@@ -116,16 +240,31 @@ void updateObjects() {
   shape(drawer); // Draw the shape
   popMatrix();
   
+  //Drawing objects
+  pushMatrix();
+  translate(positions[2][0], positions[2][1] ,  positions[2][2] );
+  rotateY(-PI/4);
+  shape(bed); // Draw the shape
+  popMatrix();
+  
   
   //Drawing objects
   pushMatrix();
   translate(positions[1][0], positions[1][1], positions[1][2]);
-  rotateY(-PI/4);
+  rotateY(PI);
   shape(window); // Draw the shape
   popMatrix();
   
+    //Drawing objects
   pushMatrix();
-  translate(point[0],point[1]);
+  translate(positions[3][0], positions[3][1], positions[3][2]);
+  //rotateY(PI);
+  shape(door); // Draw the shape
+  popMatrix();
+  
+  //Drawing objects
+  pushMatrix();
+  translate(point[0] ,point[1]);
   shape(icon);
   popMatrix();
   
@@ -151,7 +290,7 @@ void muscleTarget() {
 void mouseTarget() {  
   pushMatrix();
   noStroke();
-  translate(width/2, height/2, 500);
+  translate(width/2, height/2 + 70, 500);
   float nvaluex = min(max((mouseY-height/2)*0.01, -0.7), 0.7);
   float nvaluey = min(max((mouseX-width/2)*(-0.005), -1.3), 1.3);
   //println(nvaluex);
@@ -247,12 +386,37 @@ void updateAngle() {
   }
 }
 
+void colorUpdate(){
+
+
+if (thresh1==false && thresh2==false && thresh3==false && thresh4 == false){
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+
+}
+}
+
 void updateMo(){
   if(mousePressed){
     isDragging = true;
   }
   else{
     isDragging = false;
+    selected[0] = "none";
   }
   
 }
@@ -263,23 +427,119 @@ void updateM() {
     isDragging = true;
   } else {
     isDragging = false;
+    
+
+    
   }
+
+
 }
+
+
 
 void setLights() {
   //directionalLight(20, 30, 20, 0, height, -50);
-  //ambientLight(25, 25, 20);
+  ambientLight(36, 34, 23);
   // pointLight(50, 50, 50, width/2, height, 0);
 }
 
 void updateSelection() {
- 
+    if(isDragging==false){
 
     if(abs(point[0] - positions[0][0]) < threshold && abs(point[1] - positions[0][1]) < threshold){
     selected[0] = shapes[0];
+    colors[0][0] = 90;
+    colors[0][1] = 30;
+    colors[0][2] = 30;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+    thresh1=true;
     
 }
+
+    else{
+       thresh1=false;
+    }
     if(abs(point[0] - positions[1][0]) < threshold && abs(point[1] - positions[1][1]) < threshold){
     selected[0] = shapes[1];
+    colors[1][0] = 150;
+    colors[1][1] = 30;
+    colors[1][2] = 130;
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+    thresh2=true;
 }
+
+        else{
+       thresh2=false;
+    }
+    if(abs(point[0] - positions[2][0] - 20) < threshold && abs(point[1] - positions[2][2] - 1050) < threshold){
+    selected[0] = shapes[2];
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 0;
+    colors[5][1] = 255;
+    colors[5][2] = 0;
+    colors[6][0] = 100;
+    colors[6][1] = 100;
+    colors[6][2] = 13;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+    thresh3=true;
 }
+        else{
+       thresh3=false;
+    }
+    
+        if(abs(point[0] - positions[3][0]) < threshold && abs(point[1] - positions[3][2] ) < threshold){
+    selected[0] = shapes[3];
+    colors[0][0] = 47;
+    colors[0][1] = 14;
+    colors[0][2] = 14;
+    colors[1][0] = 70;
+    colors[1][1] = 14;
+    colors[1][2] = 63;
+    colors[5][0] = 0;
+    colors[5][1] = 125;
+    colors[5][2] = 0;
+    colors[6][0] = 200;
+    colors[6][1] = 200;
+    colors[6][2] = 26;
+    door.setFill(color(colors[6][0], colors[6][1],colors[6][2]));
+    bed.setFill(color(colors[5][0], colors[5][1],colors[5][2]));
+    window.setFill(color(colors[1][0], colors[1][1],colors[1][2]));
+    drawer.setFill(color(colors[0][0], colors[0][1],colors[0][2]));
+    thresh4=true;
+}
+        else{
+       thresh4=false;
+    }
+}}
