@@ -5,7 +5,7 @@ import java.util.*;
 
 PShape drawer; // declare objects
 PShape mouseArrow;
-PShape mussleArrow;
+PShape muscleArrow;
 PShape[] objects = {drawer}; // array with all objects of the scene
 PShape[] selected = new PShape[1]; // array with selected object to drag
 boolean isDragging = false; // if is dragging, releaseObject. if is not dragging, grabObject.
@@ -14,10 +14,11 @@ float[] vectorS = {0, 0, 0};
 float[] offset = {0, 0, 0};
 float[] input = new float[6];
 float[] angles = {45, 45};
+float[] anglesF = {45, 45};
 int inputLenght = 6; // number of elements at the string array in the serial communication
 String portName = Serial.list()[0];
 String inputValue;// change the 0 to a 1 or 2 etc. to match your port
-Serial myPort = new Serial(this, portName, 9600);
+Serial myPort = new Serial(this, portName, 74880);
 
 
 
@@ -25,13 +26,13 @@ Serial myPort = new Serial(this, portName, 9600);
 void setup() {
   size(1100, 148, P3D); // set size of window
 
-
+  smooth(4);
 
   // create shapes
   drawer = createShape(BOX, 50, 70, 10);
   drawer.setFill(color(97, 28, 28));
-  mussleArrow = createShape(BOX, 3, 3, -1000);
-  mussleArrow.setFill(color(255, 3, 3));
+  muscleArrow = createShape(BOX, 3, 3, -1000);
+  muscleArrow.setFill(color(255, 3, 3));
   mouseArrow = createShape(BOX, 3, 3, -1000);
   mouseArrow.setFill(color(0, 255, 3));
 
@@ -49,7 +50,7 @@ void draw() {
   updateAngle();
   updateM();
   mouseTarget();
-  mussleTarget();
+  muscleTarget();
   if (isDragging == true ) {
     updateObjects();
   }
@@ -67,18 +68,18 @@ void updateObjects() {
     selected[0].translate(0, 0, 0); // TO DO //REPLACE MOUSE X WITH DELTA SX
   }
 }  
-void mussleTarget() {  
+void muscleTarget() {  
   pushMatrix();
   noStroke();
   translate(width/2, height/2, -500);
-  rotateY(0.4);
-  rotateZ(0.3);
+  //rotateY(0.4);
+  //rotateZ(0.3);
   //println(nvaluex);
   //println(nvaluey);
-  rotateX(angles[0]*PI/180);
-  rotateY(angles[1]*PI/180);
+  rotateX(-1*(anglesF[0]*PI/180));
+  rotateY(anglesF[1]*PI/180);
   translate(0, 0, 500);
-  shape(mussleArrow);
+  shape(muscleArrow);
   stroke(1);
   popMatrix();
 }
@@ -169,9 +170,11 @@ void releaseObject() {
 float[] rotationAngleFromVector() {
   input = getSerial(myPort, inputLenght);
   float[] angle = new float[2];  
+  
+  if( input.length > 3){
   angle[0] = input[2]; 
-  angle[1] = input[1];
-
+  angle[1] = input[3];
+  }
   return angle;
 }
 
@@ -179,9 +182,11 @@ float[] rotationAngleFromVector() {
 
 void updateAngle() {
 
-  angles = rotationAngleFromVector();
+for (int j = 0; j < angles.length; j++) {
+      
+        anglesF[j] = (rotationAngleFromVector()[j] + 5*anglesF[j])/6;
+}  
 }
-
 void updateM() {
 
   if ( getSerial(myPort, inputLenght)[3] == 1)
