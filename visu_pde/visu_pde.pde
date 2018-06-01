@@ -99,9 +99,9 @@ void draw() {
   updateM();
   updateSelection();
   updateObjects();
-  mouseTarget();
+  //mouseTarget();
   muscleTarget();
-  //printinfo();    
+  printinfo();    
   updateSelection();
   colorUpdate();
 }  
@@ -110,9 +110,14 @@ void printinfo(){
   
      textSize(60);
      fill(10, 10, 10, 180);
-     text(String.valueOf(isDragging),1030,150,-200);
-     text(selected[0],1230,150,-200);
-      print(" PONTEIRO = ");
+     if(isDragging){
+     text("Grabbed",1000,150,-200);
+     }
+     else{
+        text("Free",1000,150,-200);
+     }
+     text(selected[0],1265,150,-200);
+      print("PONTEIRO = ");
       print(point[0]);
       print("  ");
       println(point[1]);
@@ -152,8 +157,9 @@ void printinfo(){
       print("   ");
       print(abs(point[0] - positions[5][0]));
       print("   ");
-      println(abs(point[1] - positions[5][1]));
-      print("   ");
+      print(abs(point[1] - positions[5][1]));
+      println("   ");
+      print("Selected = ");
       println(selected[0]);
       println("lampValue = " + lampValue);
       //println("doorReleaseValue   doorAngle   doorAngleoff  doorGrabValue   doorReleaseValue  doorGrab");
@@ -164,8 +170,8 @@ void printinfo(){
 
 void updatePoint() {
   if(anglesF.length>1){
-  point[1] = 535 - min(max(-1*(anglesF[0]*13*PI),-900), 900) ;
-  point[0] = min(max(anglesF[1]*11*PI,-920), 1020) + 950;
+  point[1] = 525 - min(max(-1*(anglesF[0]*13*PI),-900), 900) ;
+  point[0] = min(max(anglesF[1]*11*PI,-920), 1020) + 1200;
   
   
 }
@@ -526,7 +532,8 @@ float[] getSerial(Serial myPort, int inputLenght) {
 
       resultF = float(resultS);
       input = resultF;
-      print(resultF);
+      
+     
     }
   }
   return input;
@@ -604,7 +611,7 @@ void updateMo(){
   
 }
 void updateM() {
-
+if(getSerial(myPort, inputLenght).length >3){
   if ( getSerial(myPort, inputLenght)[4] == 1)
   {  
     isDragging = true;
@@ -614,7 +621,7 @@ void updateM() {
 
     
   }
-
+}
 
 }
 
